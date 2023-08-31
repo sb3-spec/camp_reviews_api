@@ -3,4 +3,3 @@
 bacon.toml
 Cargo.lock
 .env
-.dockerignore

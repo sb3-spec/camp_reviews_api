@@ -21,6 +21,7 @@ async fn main() {
     };
 
     // Connect to database
+    println!("{}", env::var("DATABASE_URL").unwrap());
 
     let db = Arc::new(connect_to_db().await.expect("Cannot connect to db"));
 
