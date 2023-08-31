@@ -1,4 +1,4 @@
-CREATE TABLE reviews(
+CREATE TABLE reviews IF NOT EXISTS (
     id bigserial primary key,
     author_id varchar(255) NOT NUll,
     camp_id bigint NOT NULL,
