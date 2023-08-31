@@ -4,7 +4,7 @@ use std::env;
 pub async fn connect_to_db() -> Result<PgPool, Error> {
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
-    sqlx::migrate!().run(&pool).await?;
+    sqlx::migrate!("./migrations").run(&pool).await?;
 
     Ok(pool)
 }
