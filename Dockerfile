@@ -6,8 +6,6 @@ COPY . .
 
 RUN cargo install --path .
 
-RUN sqlx migrate run
-
 
 EXPOSE 8080
 
