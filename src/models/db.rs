@@ -1,8 +1,12 @@
 use sqlx::PgPool;
-use std::env;
+use std::{env, path};
 
 pub async fn connect_to_db() -> Result<PgPool, Error> {
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
+
+    let b = path::Path::new("./migrations").is_dir();
+
+    println!("{}", b);
 
     sqlx::migrate!("./migrations").run(&pool).await?;
 
