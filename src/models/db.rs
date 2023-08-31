@@ -4,11 +4,10 @@ use std::{env, path};
 pub async fn connect_to_db() -> Result<PgPool, Error> {
     let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
-    let b = path::Path::new("./migrations").is_dir();
-
-    println!("{}", b);
-
-    sqlx::migrate!("./migrations").run(&pool).await?;
+    match sqlx::migrate!().run(&pool).await {
+        Ok(_) => println!("Migrations successfully applied"),
+        Err(e) => println!("Error applying migrations: {:?}", e),
+    };
 
     Ok(pool)
 }
