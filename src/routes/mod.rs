@@ -4,20 +4,27 @@ use serde_json::json;
 use sqlx::PgPool;
 use warp::{reject::Rejection, Filter};
 
-use crate::{auth, models};
+use crate::{
+    auth, models,
+    routes::{camps::camp_rest_filters, users::user_rest_filters},
+};
 
 use self::reviews::review_rest_filters;
 
+mod camps;
 mod custom_warp_filters;
 mod reviews;
+mod users;
 
 pub async fn start_web(web_port: u16, db: Arc<PgPool>) -> Result<(), Error> {
     let cors = warp::cors()
         .allow_origins(["http://localhost:5173"])
         .allow_headers(vec!["Supabase-Auth-Token", "Content-Type", "content-type"])
-        .allow_methods(vec!["GET", "POST", "HEAD", "DELETE", "PATCH"]);
+        .allow_methods(vec!["GET", "POST", "HEAD", "DELETE", "PATCH", "OPTIONS"]);
 
-    let apis = review_rest_filters(db.clone());
+    let apis = review_rest_filters(db.clone())
+        .or(user_rest_filters(db.clone()))
+        .or(camp_rest_filters(db.clone()));
 
     let content = warp::fs::dir("web-folder/".to_string());
 

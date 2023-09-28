@@ -19,7 +19,7 @@ serde_derive = "*"
 chrono = {version = "0.4", features = ["serde"]}
 
 #DB libs
-sqlx = { version = "*", features = [ "runtime-tokio", "postgres", "tls-rustls", "macros", "chrono", "json"] }
+sqlx = { version = "*", features = [ "runtime-tokio", "postgres", "tls-rustls", "macros", "chrono", "json", "bigdecimal"] }
 urlencoding = "*"
 dotenvy = "*"
 dotenvy_macro = "*"
