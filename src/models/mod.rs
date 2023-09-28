@@ -1,10 +1,14 @@
 use thiserror::Error as ThisError;
 
+mod camp;
 mod db;
 mod review;
+mod user;
 
+pub use camp::{Camp, CampManager, CampPatch};
 pub use db::connect_to_db;
 pub use review::{Review, ReviewManager, ReviewPatch};
+pub use user::{User, UserManager};
 
 #[derive(ThisError, Debug)]
 pub enum Error {
