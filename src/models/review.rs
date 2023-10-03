@@ -17,6 +17,22 @@ pub struct Review {
     pub rating: i32,
 }
 
+#[derive(Debug, FromRow, Serialize, Deserialize)]
+pub struct ReviewWithUser {
+    pub id: i64,
+    pub author_id: String,
+    pub camp_id: i64,
+    #[serde(with = "ts_seconds")]
+    pub ctime: sqlx::types::chrono::DateTime<Utc>,
+    pub title: String,
+    pub body: String,
+    pub rating: i32,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub username: String,
+}
+
 impl Default for Review {
     fn default() -> Self {
         Self {
@@ -77,11 +93,13 @@ impl ReviewManager {
         Ok("Review deleted successfully".to_string())
     }
 
-    pub async fn get_camp_reviews(db: &PgPool, camp_id: i64) -> Result<Vec<Review>, Error> {
-        let reviews = sqlx::query_as::<_, Review>("SELECT * FROM reviews where camp_id = $1")
-            .bind(camp_id)
-            .fetch_all(db)
-            .await?;
+    pub async fn get_camp_reviews(db: &PgPool, camp_id: i64) -> Result<Vec<ReviewWithUser>, Error> {
+        let reviews = sqlx::query_as::<_, ReviewWithUser>(
+            "SELECT * FROM reviews JOIN users ON author_id = supabase_id where camp_id = $1",
+        )
+        .bind(camp_id)
+        .fetch_all(db)
+        .await?;
 
         Ok(reviews)
     }
