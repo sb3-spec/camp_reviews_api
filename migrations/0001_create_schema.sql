@@ -33,3 +33,8 @@ CREATE TABLE IF NOT EXISTS reviews(
     CONSTRAINT fk_camps FOREIGN KEY (camp_id) REFERENCES camps(id),
     CONSTRAINT fk_users FOREIGN KEY (author_id) REFERENCES users(supabase_id)
 );
+CREATE TABLE users_camps(
+    camp_id bigint REFERENCES camps(id),
+    user_id varchar(255) REFERENCES users(supabase_id),
+    CONSTRAINT users_camps_pkey PRIMARY KEY (camp_id, user_id)
+);
