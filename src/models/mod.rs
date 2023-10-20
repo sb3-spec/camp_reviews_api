@@ -2,6 +2,7 @@ use thiserror::Error as ThisError;
 
 mod camp;
 mod db;
+pub mod favorite_camps;
 mod review;
 mod user;
 

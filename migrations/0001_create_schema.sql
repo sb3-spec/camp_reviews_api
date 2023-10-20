@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS reviews(
     title varchar(255) NOT NULL,
     body varchar(255) DEFAULT '' NOT NULL,
     rating int NOT NULL,
+    
     CONSTRAINT fk_camps FOREIGN KEY (camp_id) REFERENCES camps(id),
     CONSTRAINT fk_users FOREIGN KEY (author_id) REFERENCES users(supabase_id)
 );
