@@ -11,7 +11,7 @@ pub struct User {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub username: String,
+    pub username: Option<String>,
 }
 
 pub struct UserManager;
@@ -25,7 +25,7 @@ impl UserManager {
             data.first_name,
             data.last_name,
             data.email,
-            data.username
+            data.username.unwrap_or_default()
         )
       .fetch_one(db).await?;
 

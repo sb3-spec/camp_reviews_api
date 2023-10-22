@@ -27,14 +27,13 @@ CREATE TABLE IF NOT EXISTS reviews(
     author_id varchar(255) NOT NUll,
     camp_id bigint NOT NULL,
     ctime timestamp with time zone DEFAULT now() NOT NULL,
-    title varchar(255) NOT NULL,
     body varchar(255) DEFAULT '' NOT NULL,
     rating int NOT NULL,
     
     CONSTRAINT fk_camps FOREIGN KEY (camp_id) REFERENCES camps(id),
     CONSTRAINT fk_users FOREIGN KEY (author_id) REFERENCES users(supabase_id)
 );
-CREATE TABLE users_camps(
+CREATE TABLE IF NOT EXISTS users_camps(
     camp_id bigint REFERENCES camps(id),
     user_id varchar(255) REFERENCES users(supabase_id),
     CONSTRAINT users_camps_pkey PRIMARY KEY (camp_id, user_id)

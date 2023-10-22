@@ -54,8 +54,6 @@ async fn handle_rejection(err: Rejection) -> Result<impl warp::Reply, Infallible
     let result = json!({ "error": error_message });
     let result = warp::reply::json(&result);
 
-    println!("{:?}", err);
-
     Ok(warp::reply::with_status(result, error_code))
 }
 

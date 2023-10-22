@@ -12,7 +12,6 @@ pub struct Review {
     pub camp_id: i64,
     #[serde(with = "ts_seconds")]
     pub ctime: sqlx::types::chrono::DateTime<Utc>,
-    pub title: String,
     pub body: String,
     pub rating: i32,
 }
@@ -24,7 +23,6 @@ pub struct ReviewWithUser {
     pub camp_id: i64,
     #[serde(with = "ts_seconds")]
     pub ctime: sqlx::types::chrono::DateTime<Utc>,
-    pub title: String,
     pub body: String,
     pub rating: i32,
     pub first_name: String,
@@ -40,7 +38,6 @@ impl Default for Review {
             author_id: String::new(),
             camp_id: 0,
             ctime: sqlx::types::chrono::DateTime::default(),
-            title: String::new(),
             body: String::new(),
             rating: 0,
         }
@@ -49,9 +46,9 @@ impl Default for Review {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ReviewPatch {
-    pub title: Option<String>,
-    pub body: Option<String>,
-    pub rating: Option<i32>,
+    pub body: String,
+    pub rating: i32,
+    pub photos: Option<Vec<String>>,
 }
 
 pub struct ReviewManager;
@@ -63,14 +60,9 @@ impl ReviewManager {
         data: ReviewPatch,
         camp_id: i64,
     ) -> Result<Review, Error> {
-        let query = "INSERT INTO reviews (camp_id, author_id, title, body, rating) VALUES ($1, $2, $3, $4, $5) returning *";
+        let review = sqlx::query_as!(Review, "INSERT INTO reviews (camp_id, author_id, body, rating) VALUES ($1, $2, $3, $4) returning *",
+    camp_id, utx.user_id, &data.body, &data.rating)
 
-        let review = sqlx::query_as::<_, Review>(query)
-            .bind(camp_id)
-            .bind(utx.user_id)
-            .bind(&data.title.unwrap_or_default())
-            .bind(&data.body.unwrap_or_default())
-            .bind(&data.rating.unwrap_or_default())
             .fetch_one(db)
             .await?;
 
