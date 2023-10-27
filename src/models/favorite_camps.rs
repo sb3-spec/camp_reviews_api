@@ -15,18 +15,14 @@ pub struct UserCampJunction {
 pub struct UserCampJunctionManager;
 
 impl UserCampJunctionManager {
-    pub async fn query(
-        db: &PgPool,
-        utx: UserCtx,
-        camp_id: i64,
-    ) -> Result<Vec<UserCampJunction>, Error> {
+    pub async fn query(db: &PgPool, utx: UserCtx, camp_id: i64) -> Result<UserCampJunction, Error> {
         let camp_user_junctions = sqlx::query_as!(
             UserCampJunction,
             "SELECT * FROM users_camps WHERE (user_id = $1) AND (camp_id = $2)",
             utx.user_id,
             camp_id
         )
-        .fetch_all(db)
+        .fetch_one(db)
         .await?;
 
         Ok(camp_user_junctions)

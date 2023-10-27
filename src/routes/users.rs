@@ -70,6 +70,14 @@ pub fn user_rest_filters(
         .and(warp::path::end())
         .and_then(get_favorite_camps);
 
+    let check_if_camp_is_favorite_path = users_path
+        .and(warp::get())
+        .and(common.clone())
+        .and(warp::path("favorite"))
+        .and(warp::path::param::<i64>())
+        .and(warp::path::end())
+        .and_then(check_if_camp_is_in_favorites);
+
     // endregion: Paths
     new_user_path
         .or(get_user_path)
@@ -78,6 +86,7 @@ pub fn user_rest_filters(
         .or(add_camp_to_favorites_path)
         .or(remove_camp_from_favorites_path)
         .or(get_favorite_camps_path)
+        .or(check_if_camp_is_favorite_path)
 }
 
 // region: Handlers
@@ -123,6 +132,16 @@ async fn get_favorite_camps(
     let camps = UserCampJunctionManager::qyery_by_user_id(&db, user_id).await?;
 
     json_response(camps)
+}
+
+async fn check_if_camp_is_in_favorites(
+    db: Arc<PgPool>,
+    utx: UserCtx,
+    camp_id: i64,
+) -> Result<Json, warp::Rejection> {
+    let camp = UserCampJunctionManager::query(&db, utx, camp_id).await?;
+
+    json_response(camp)
 }
 
 async fn remove_camp_from_favorites_handler(
