@@ -60,8 +60,10 @@ impl ReviewManager {
         data: ReviewPatch,
         camp_id: i64,
     ) -> Result<Review, Error> {
+        Self::delete_user_reviews_for_camp(db, &utx, camp_id).await?;
+
         let review = sqlx::query_as!(Review, "INSERT INTO reviews (camp_id, author_id, body, rating) VALUES ($1, $2, $3, $4) returning *",
-    camp_id, utx.user_id, &data.body, &data.rating)
+    camp_id, utx.clone().user_id, &data.body, &data.rating)
 
             .fetch_one(db)
             .await?;
@@ -71,18 +73,49 @@ impl ReviewManager {
         Ok(review)
     }
 
-    pub async fn delete(db: &PgPool, _utx: UserCtx, review_id: i64) -> Result<String, Error> {
-        let deleted_review = sqlx::query_as!(
+    pub async fn get_review(
+        db: &PgPool,
+        utx: &UserCtx,
+        camp_id: i64,
+    ) -> Result<Option<Review>, Error> {
+        let review = sqlx::query_as!(
             Review,
-            "DELETE FROM reviews where id = $1 returning *",
-            review_id
+            "SELECT * FROM reviews WHERE camp_id = $1 AND author_id = $2",
+            camp_id,
+            utx.user_id
         )
-        .fetch_one(db)
+        .fetch_optional(db)
         .await?;
 
-        update_calc_review_average(deleted_review.camp_id, db).await?;
+        Ok(review)
+    }
+
+    pub async fn delete(db: &PgPool, _utx: &UserCtx, review_id: i64) -> Result<String, Error> {
+        sqlx::query!("DELETE FROM reviews where id = $1", review_id,)
+            .execute(db)
+            .await?;
+
+        update_calc_review_average(review_id, db).await?;
 
         Ok("Review deleted successfully".to_string())
+    }
+
+    pub async fn delete_user_reviews_for_camp(
+        db: &PgPool,
+        utx: &UserCtx,
+        camp_id: i64,
+    ) -> Result<String, Error> {
+        sqlx::query!(
+            "DELETE FROM reviews where camp_id = $1 AND author_id = $2",
+            camp_id,
+            utx.user_id
+        )
+        .execute(db)
+        .await?;
+
+        update_calc_review_average(camp_id, db).await?;
+
+        Ok("Reviews deleted successfully".to_string())
     }
 
     pub async fn get_camp_reviews(db: &PgPool, camp_id: i64) -> Result<Vec<ReviewWithUser>, Error> {

@@ -1,6 +1,7 @@
 use sqlx::PgPool;
 use thiserror::Error as ThisError;
 
+#[derive(Debug, Clone)]
 pub struct UserCtx {
     pub user_id: String,
 }

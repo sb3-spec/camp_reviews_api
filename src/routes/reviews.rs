@@ -81,7 +81,7 @@ async fn delete_review(
     utx: UserCtx,
     review_id: i64,
 ) -> Result<Json, warp::Rejection> {
-    ReviewManager::delete(&db, utx, review_id).await?;
+    ReviewManager::delete(&db, &utx, review_id).await?;
 
     json_response(())
 }
