@@ -60,12 +60,20 @@ pub fn camp_rest_filters(
         .and(warp::path::param::<i64>())
         .and_then(get_camp_reviews);
 
+    let get_featured_camps_path = camps_path
+        .and(warp::path("featured"))
+        .and(warp::get())
+        .and(common.clone())
+        .and(warp::path::end())
+        .and_then(get_featured_camps);
+
     new_camp_path
         .or(get_camp_path)
         .or(delete_camp_path)
         .or(get_camp_reviews_path)
         .or(patch_camp_path)
         .or(get_all_camps_path)
+        .or(get_featured_camps_path)
 }
 
 async fn create_camp(
@@ -82,6 +90,12 @@ async fn get_camp(db: Arc<PgPool>, utx: UserCtx, camp_id: i64) -> Result<Json, w
     let camp = CampManager::get_camp(&db, camp_id, utx).await?;
 
     json_response(camp)
+}
+
+async fn get_featured_camps(db: Arc<PgPool>, _utx: UserCtx) -> Result<Json, warp::Rejection> {
+    let featured_camps = CampManager::get_featured_camps(&db).await?;
+
+    json_response(featured_camps)
 }
 
 async fn delete_camp(db: Arc<PgPool>, utx: UserCtx, camp_id: i64) -> Result<Json, warp::Rejection> {

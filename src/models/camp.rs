@@ -83,9 +83,14 @@ impl CampManager {
         Ok(camp)
     }
 
-    // pub async fn get_featured_camps(db: &PgPool, _utx: &UserCtx) -> Result<Vec<Camp>, Error> {
-    //     let featured_camps = sqlx::query_as!(Camp, "SELECT * FROM camps ORDER BY  LIMIT 10")
-    // }
+    pub async fn get_featured_camps(db: &PgPool) -> Result<Vec<Camp>, Error> {
+        let featured_camps =
+            sqlx::query_as!(Camp, "SELECT * FROM camps ORDER BY rating DESC LIMIT 10")
+                .fetch_all(db)
+                .await?;
+
+        Ok(featured_camps)
+    }
 
     pub async fn update_camp(
         db: &PgPool,
