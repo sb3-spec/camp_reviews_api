@@ -1,16 +1,21 @@
 use std::{convert::Infallible, sync::Arc};
 
+use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
-use warp::{reject::Rejection, Filter};
+use warp::{reject::Rejection, reply::Json, Filter};
 
 use crate::{
     auth, models,
-    routes::{camps::camp_rest_filters, users::user_rest_filters},
+    routes::{
+        camp_requests::camp_requests_rest_filters, camps::camp_rest_filters,
+        users::user_rest_filters,
+    },
 };
 
 use self::reviews::review_rest_filters;
 
+mod camp_requests;
 mod camps;
 mod custom_warp_filters;
 mod reviews;
@@ -22,9 +27,10 @@ pub async fn start_web(web_port: u16, db: Arc<PgPool>) -> Result<(), Error> {
         .allow_headers(vec!["Supabase-Auth-Token", "Content-Type", "content-type"])
         .allow_methods(vec!["GET", "POST", "HEAD", "DELETE", "PATCH", "OPTIONS"]);
 
-    let apis = review_rest_filters(db.clone())
+    let api = review_rest_filters(db.clone())
         .or(user_rest_filters(db.clone()))
-        .or(camp_rest_filters(db.clone()));
+        .or(camp_rest_filters(db.clone()))
+        .or(camp_requests_rest_filters(db.clone()));
 
     let content = warp::fs::dir("web-folder/".to_string());
 
@@ -35,7 +41,7 @@ pub async fn start_web(web_port: u16, db: Arc<PgPool>) -> Result<(), Error> {
     let static_site = root_index.or(content);
 
     // Combine the routes!
-    let routes = static_site.or(apis).with(cors).recover(handle_rejection);
+    let routes = static_site.or(api).with(cors).recover(handle_rejection);
     println!("Starting web server at 0.0.0.0:{}", web_port);
     warp::serve(routes).run(([0, 0, 0, 0], web_port)).await;
 
@@ -43,7 +49,7 @@ pub async fn start_web(web_port: u16, db: Arc<PgPool>) -> Result<(), Error> {
 }
 
 async fn handle_rejection(err: Rejection) -> Result<impl warp::Reply, Infallible> {
-    let mut error_code = warp::http::StatusCode::BAD_REQUEST;
+    let mut _error_code = warp::http::StatusCode::BAD_REQUEST;
     let mut error_message = String::new();
 
     match err.find::<WebErrorMessage>() {
@@ -54,7 +60,12 @@ async fn handle_rejection(err: Rejection) -> Result<impl warp::Reply, Infallible
     let result = json!({ "error": error_message });
     let result = warp::reply::json(&result);
 
-    Ok(warp::reply::with_status(result, error_code))
+    Ok(warp::reply::with_status(result, _error_code))
+}
+
+pub fn json_response<D: Serialize>(data: D) -> Result<Json, warp::Rejection> {
+    let response = json!(data);
+    Ok(warp::reply::json(&response))
 }
 
 #[derive(thiserror::Error, Debug)]

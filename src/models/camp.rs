@@ -1,4 +1,7 @@
-use super::{Error, Review};
+use super::{
+    camp_request::{CampRequest, CampRequestManager},
+    Error, Review,
+};
 use crate::auth::UserCtx;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
@@ -42,27 +45,29 @@ pub struct CampPatch {
 pub struct CampManager;
 
 impl CampManager {
-    pub async fn get_all_camps(db: &PgPool, utx: UserCtx) -> Result<Vec<Camp>, Error> {
+    pub async fn get_all_camps(db: &PgPool, _utx: UserCtx) -> Result<Vec<Camp>, Error> {
         let query = "SELECT * FROM camps";
         let all_camps = sqlx::query_as::<_, Camp>(query).fetch_all(db).await?;
 
         Ok(all_camps)
     }
 
-    pub async fn add_camp(db: &PgPool, data: CampPatch, utx: UserCtx) -> Result<Camp, Error> {
-        let camp = sqlx::query_as!(
+    pub async fn add_camp(db: &PgPool, _utx: UserCtx, camp_request_id: i64) -> Result<Camp, Error> {
+        let data = CampRequestManager::get_camp_request(db, camp_request_id).await?;
+
+        let camp: Camp = sqlx::query_as!(
             Camp,
             "insert into camps (name, description, phone_number, street_address, city, state, country, email, zip_code, website, tags, image_urls) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) returning *",
-            data.name.unwrap_or_default(),
-            data.description.unwrap_or("".to_string()),
-            data.phone_number.unwrap_or("".to_string()),
-            data.street_address.unwrap_or("".to_string()),
-            data.city.unwrap_or("".to_string()),
-            data.state.unwrap_or("".to_string()),
-            data.country.unwrap_or("".to_string()),
-            data.email.unwrap_or("".to_string()),
-            data.zip_code.unwrap_or("".to_string()),
-            data.website.unwrap_or("".to_string()),
+            data.name,
+            data.description,
+            data.phone_number,
+            data.street_address,
+            data.city,
+            data.state,
+            data.country,
+            data.email,
+            data.zip_code,
+            data.website.unwrap_or_default(),
             &data.tags.unwrap_or_default(),
             &data.image_urls.unwrap_or_default(),
         ).fetch_one(db).await?;
@@ -77,6 +82,10 @@ impl CampManager {
 
         Ok(camp)
     }
+
+    // pub async fn get_featured_camps(db: &PgPool, _utx: &UserCtx) -> Result<Vec<Camp>, Error> {
+    //     let featured_camps = sqlx::query_as!(Camp, "SELECT * FROM camps ORDER BY  LIMIT 10")
+    // }
 
     pub async fn update_camp(
         db: &PgPool,

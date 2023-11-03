@@ -23,7 +23,7 @@ pub fn camp_rest_filters(
     let new_camp_path = camps_path
         .and(warp::post())
         .and(common.clone())
-        .and(warp::body::json::<CampPatch>())
+        .and(warp::path::param::<i64>())
         .and(warp::path::end())
         .and_then(create_camp);
 
@@ -71,9 +71,9 @@ pub fn camp_rest_filters(
 async fn create_camp(
     db: Arc<PgPool>,
     utx: UserCtx,
-    data: CampPatch,
+    camp_request_id: i64,
 ) -> Result<Json, warp::Rejection> {
-    let new_camp = CampManager::add_camp(&db, data, utx).await?;
+    let new_camp = CampManager::add_camp(&db, utx, camp_request_id).await?;
 
     json_response(new_camp)
 }
