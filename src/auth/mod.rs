@@ -17,4 +17,7 @@ pub async fn utx_from_token(_db: &PgPool, token: &str) -> Result<UserCtx, Error>
 pub enum Error {
     #[error("Invalid Token {0}")]
     InvalidToken(String),
+
+    #[error("Missing required token")]
+    MissingToken,
 }
