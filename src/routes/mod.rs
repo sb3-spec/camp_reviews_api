@@ -26,6 +26,7 @@ pub async fn start_web(web_port: u16, db: Arc<PgPool>) -> Result<(), Error> {
         .allow_origins([
             "http://localhost:5173",
             "https://melodious-basbousa-06ea03.netlify.app/",
+            "https://endearing-concha-b2f2dc.netlify.app/",
         ])
         .allow_headers(vec!["Supabase-Auth-Token", "Content-Type", "content-type"])
         .allow_methods(vec!["GET", "POST", "HEAD", "DELETE", "PATCH", "OPTIONS"]);
